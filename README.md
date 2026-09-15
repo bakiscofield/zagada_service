@@ -19,7 +19,8 @@ crédite le compte joueur et marque **Réussie** → le client reçoit « ✅ D�
 récapitulatif → « À traiter » → l'équipe encaisse le code chez le bookmaker,
 envoie l'argent au client et marque **Réussie** (montant payé) → « ✅ Retrait payé ».
 
-Aussi : `📜 Mes opérations` (annulation d'un dépôt non payé), `☎️ Support`
+Un **clavier permanent** en bas du chat (💰 Dépôt · 💸 Retrait · 📜 Mes opérations · ☎️ Support)
+lance tout d'un appui, sans commande à taper. Aussi : annulation d'un dépôt non payé, support
 (WhatsApp / Telegram), commandes `/depot`, `/retrait`, `/historique`, `/support`,
 `/cancel`, et `/id` (identifiant de chat, pour enregistrer un membre de l'équipe).
 

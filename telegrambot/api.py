@@ -45,6 +45,20 @@ def inline_keyboard(rows: list[list[dict]]) -> dict:
     return {"inline_keyboard": rows}
 
 
+def reply_keyboard(rows: list[list[str]], placeholder: str = "") -> dict:
+    """Clavier PERMANENT affiché sous la zone de saisie (gros boutons toujours
+    visibles). Un appui envoie le libellé comme message texte : `flows` le
+    reconnaît comme une commande."""
+    markup: dict = {
+        "keyboard": [[{"text": t} for t in row] for row in rows],
+        "resize_keyboard": True,
+        "is_persistent": True,
+    }
+    if placeholder:
+        markup["input_field_placeholder"] = placeholder
+    return markup
+
+
 def send_message(chat_id: int, text: str, reply_markup: Optional[dict] = None,
                  parse_mode: Optional[str] = "HTML") -> Optional[dict]:
     payload: dict[str, Any] = {"chat_id": chat_id, "text": text, "disable_web_page_preview": True}

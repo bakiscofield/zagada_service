@@ -82,8 +82,21 @@ class DepositFlowTests(BotTestCase):
         flows.handle_update(_msg("Bonjour !"))
         client = Client.objects.get(telegram_id=CHAT_ID)
         self.assertEqual(client.username, "theo")
-        self.assertIn("act:deposit", self.buttons())
-        self.assertIn("act:payout", self.buttons())
+        kb = self.sent.call_args.kwargs["reply_markup"]
+        labels = [b["text"] for row in kb["keyboard"] for b in row]
+        self.assertEqual(labels, ["💰 Dépôt", "💸 Retrait", "📜 Mes opérations", "☎️ Support"])
+        self.assertTrue(kb["is_persistent"])
+
+    def test_keyboard_labels_start_flows(self):
+        flows.handle_update(_msg("/start"))
+        flows.handle_update(_msg("💰 Dépôt"))
+        self.assertEqual(self.session().step, TelegramSession.Step.DEP_BOOKMAKER)
+        flows.handle_update(_msg("💸 Retrait"))
+        self.assertEqual(self.session().step, TelegramSession.Step.PAY_BOOKMAKER)
+        flows.handle_update(_msg("📜 Mes opérations"))
+        self.assertIn("Aucune opération", self.texts()[-1])
+        flows.handle_update(_msg("☎️ Support"))
+        self.assertIn("Support", self.texts()[-1])
 
     def test_full_deposit_then_reference_alerts_team(self):
         self.run_deposit_until_confirm()

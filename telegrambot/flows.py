@@ -33,6 +33,15 @@ GREETINGS = {
 MENU_BTN = {"text": "🏠 Menu", "callback_data": "act:menu"}
 CANCEL_BTN = {"text": "❌ Annuler", "callback_data": "act:cancel"}
 
+# Libellés du clavier permanent (bas du chat). Un appui envoie ce texte.
+KB_DEPOSIT, KB_PAYOUT = "💰 Dépôt", "💸 Retrait"
+KB_HISTORY, KB_SUPPORT = "📜 Mes opérations", "☎️ Support"
+MAIN_KEYBOARD = [[KB_DEPOSIT, KB_PAYOUT], [KB_HISTORY, KB_SUPPORT]]
+
+
+def main_keyboard() -> dict:
+    return api.reply_keyboard(MAIN_KEYBOARD, placeholder="Choisissez une action…")
+
 
 # --------------------------------------------------------------------------- #
 # Point d'entrée
@@ -86,14 +95,14 @@ def _handle_message(message: dict) -> None:
     elif low in ("/cancel", "/annuler", "annuler"):
         session.reset()
         api.send_message(chat_id, "Opération annulée.", reply_markup=api.inline_keyboard([[MENU_BTN]]))
-    elif low in ("/depot", "/deposit", "dépôt", "depot"):
+    elif low in ("/depot", "/deposit", "dépôt", "depot", KB_DEPOSIT.lower()):
         _start_flow(chat_id, client, session, "deposit")
-    elif low in ("/retrait", "/payout", "retrait"):
+    elif low in ("/retrait", "/payout", "retrait", KB_PAYOUT.lower()):
         _start_flow(chat_id, client, session, "payout")
-    elif low in ("/historique", "/history", "historique"):
+    elif low in ("/historique", "/history", "historique", KB_HISTORY.lower()):
         session.reset()
         _show_history(chat_id, client)
-    elif low in ("/support", "support", "/aide", "aide", "/help"):
+    elif low in ("/support", "support", "/aide", "aide", "/help", KB_SUPPORT.lower()):
         session.reset()
         _show_support(chat_id)
     else:
@@ -189,22 +198,20 @@ def _send_main_menu(chat_id, client) -> None:
     conf = SiteSettings.load()
     name = (client.first_name or client.username or "").strip()
     hello = f"Bonjour {esc(name)} 👋" if name else "Bonjour 👋"
-    dep = {"text": "💰 Dépôt", "callback_data": "act:deposit"}
-    pay = {"text": "💸 Retrait", "callback_data": "act:payout"}
-    if not conf.deposit_enabled:
-        dep["text"] = "💰 Dépôt (fermé)"
-    if not conf.payout_enabled:
-        pay["text"] = "💸 Retrait (fermé)"
-    rows = [
-        [dep, pay],
-        [{"text": "📜 Mes opérations", "callback_data": "act:history"},
-         {"text": "☎️ Support", "callback_data": "act:support"}],
-    ]
     intro = f"\n{esc(conf.welcome_text)}" if conf.welcome_text else ""
+    closed = []
+    if not conf.deposit_enabled:
+        closed.append("dépôts")
+    if not conf.payout_enabled:
+        closed.append("retraits")
+    notice = f"\n⛔ {' et '.join(closed)} momentanément fermés." if closed else ""
+    # Le menu = clavier permanent en bas du chat : les boutons restent
+    # visibles pendant toute la conversation, sans retaper de commande.
     api.send_message(
         chat_id,
-        f"{hello}\n<b>{esc(conf.brand_name)}</b>{intro}\n\nQue souhaitez-vous faire ?",
-        reply_markup=api.inline_keyboard(rows),
+        f"{hello}\n<b>{esc(conf.brand_name)}</b>{intro}{notice}\n\n"
+        "Utilisez les boutons ci-dessous 👇",
+        reply_markup=main_keyboard(),
     )
 
 
